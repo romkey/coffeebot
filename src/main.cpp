@@ -9,8 +9,6 @@
 #include <BootstrapWebSite.h>
 #include <BootstrapWebPage.h>
 
-#include <IFTTTWebhook.h>
-
 #include "config.h"
 
 // hardware configuration
@@ -20,7 +18,6 @@ const int relayPin = RELAY_PIN;
 
 ESP8266WebServer server(80);
 BootstrapWebSite ws("en", "Coffeebot");
-IFTTTWebhook ifttt(IFTTT_API_KEY, IFTTT_EVENT_NAME);
 
 int ledState = LOW;         // the current state of the output pin
 int relayState = LOW;         // the current state of the output pin
@@ -30,11 +27,14 @@ volatile bool interrupted = false;
 
 void handleInfo(), handleESP(), handleRoot(), handleNotFound(), handleButtonPress();
 
-void handleInterrupt() {
+IRAM_ATTR void handleInterrupt() {
   interrupted = true;
 }
 
 void setup() {
+  Serial.begin(115200);
+  Serial.println("hello world");
+
   startTime = millis();
   pinMode(buttonPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(buttonPin), handleInterrupt, FALLING);
@@ -43,7 +43,9 @@ void setup() {
 
   digitalWrite(ledPin, LOW);
 
-  Serial.begin(115200);
+  Serial.println("wifi setup ->");
+
+#if 0
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.println("");
@@ -69,8 +71,6 @@ void setup() {
   }
 #endif
 
-  ifttt.trigger("boot");
-
   ws.addBranding(BRANDING_IMAGE, BRANDING_IMAGE_TYPE);
 
   ws.addPageToNav(String("Info"), String("/info"));
@@ -84,6 +84,7 @@ void setup() {
 
   server.begin();
   Serial.println("HTTP server started");
+#endif
 }
 
 void resetGroundsContainer() {
@@ -94,12 +95,12 @@ void resetGroundsContainer() {
   digitalWrite(ledPin, LOW);
   digitalWrite(relayPin, LOW);
   Serial.println("... opening ground container switch");
-
-  ifttt.trigger();
 }
 
 void loop() {
+#if 0
   server.handleClient();
+#endif
 
   if (interrupted) {
     Serial.println("interrupto");
